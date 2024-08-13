@@ -33,9 +33,9 @@ export class CategoryService {
     } catch (error) {
       if (error.code === '23505') {
         this.logger.error(
-          `Duplicate nama for category: ${JSON.stringify(createCategoryDto)}`,
+          `Duplicate name for category: ${JSON.stringify(createCategoryDto)}`,
         );
-        throw new ConflictException('Nama already exists');
+        throw new ConflictException('Name already exists');
       } else {
         this.logger.error(
           `Failed to save category: ${JSON.stringify(createCategoryDto)}`,

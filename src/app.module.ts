@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CommonInterceptor } from './shared/interceptors/common.interceptor';
 import { CategoryModule } from './category/category.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { CategoryModule } from './category/category.module';
       }
     }),
     AuthModule,
-    CategoryModule
+    CategoryModule,
+    ProductModule
   ],
   providers: [
     {

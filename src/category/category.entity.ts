@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Product } from 'src/product/product.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Category {
@@ -7,6 +15,9 @@ export class Category {
 
   @Column({ unique: true })
   name: string;
+
+  @OneToMany((_type) => Product, (product) => product.category, { eager: true })
+  products: Product[];
 
   @CreateDateColumn()
   created_at: string;

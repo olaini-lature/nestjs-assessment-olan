@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,9 +12,12 @@ import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from 'src/shared/interfaces/jwt-payload.interface';
+import { GetUsersFilterDto } from './dto/get-users-filter.dto';
 
 @Injectable()
 export class AuthService {
+  private logger = new Logger('TasksRepository', { timestamp: true });
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -64,6 +68,33 @@ export class AuthService {
       };
     } else {
       throw new UnauthorizedException('Please check your login credentials');
+    }
+  }
+
+  async findAll(filterDto: GetUsersFilterDto): Promise<User[]> {
+    const { search, type } = filterDto;
+
+    const query = this.userRepository.createQueryBuilder('user');
+
+    if (type) {
+      query.andWhere('user.type = :type', { type });
+    }
+
+    if (search) {
+      query.andWhere('(LOWER(user.username) LIKE LOWER(:search))', {
+        search: `%${search}%`,
+      });
+    }
+
+    try {
+      const users = await query.getMany();
+      return users;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get users. Filters: ${JSON.stringify(filterDto)}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
     }
   }
 }

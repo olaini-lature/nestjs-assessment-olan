@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { UserType } from 'src/shared/enums/user-type.enum';
 import {
   Column,
@@ -16,6 +17,7 @@ export class User {
   username: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column({

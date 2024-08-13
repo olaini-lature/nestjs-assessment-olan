@@ -16,7 +16,7 @@ import { GetUsersFilterDto } from './dto/get-users-filter.dto';
 
 @Injectable()
 export class AuthService {
-  private logger = new Logger('TasksRepository', { timestamp: true });
+  private logger = new Logger('AuthService', { timestamp: true });
 
   constructor(
     @InjectRepository(User)
@@ -39,10 +39,20 @@ export class AuthService {
 
     try {
       await this.userRepository.save(user);
+      this.logger.verbose(
+        `Successful save user: ${JSON.stringify(authCredentialsDto)}`,
+      );
     } catch (error) {
       if (error.code === '23505') {
+        this.logger.error(
+          `Duplicate username for user: ${JSON.stringify(authCredentialsDto)}`,
+        );
         throw new ConflictException('Username already exists');
       } else {
+        this.logger.error(
+          `Failed to save user: ${JSON.stringify(authCredentialsDto)}`,
+          error.stack,
+        );
         throw new InternalServerErrorException();
       }
     }
@@ -61,12 +71,19 @@ export class AuthService {
     if (user && (await bcrypt.compare(password, user.password))) {
       const payload: JwtPayload = { username, type };
       const accessToken: string = await this.jwtService.sign(payload);
-      return {
+      const data: JwtPayload = {
         username,
         type,
         accessToken,
       };
+
+      this.logger.verbose(`Successful sign in user: ${JSON.stringify(data)}`);
+
+      return data;
     } else {
+      this.logger.error(
+        `Failed credential for user: ${JSON.stringify(authCredentialsDto)}`,
+      );
       throw new UnauthorizedException('Please check your login credentials');
     }
   }
@@ -88,6 +105,7 @@ export class AuthService {
 
     try {
       const users = await query.getMany();
+      this.logger.verbose(`Successful get data user: ${JSON.stringify(users)}`);
       return users;
     } catch (error) {
       this.logger.error(

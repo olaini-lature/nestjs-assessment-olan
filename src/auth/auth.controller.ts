@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Logger, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { JwtPayload } from 'src/shared/interfaces/jwt-payload.interface';
@@ -9,29 +17,27 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
-  private logger = new Logger('AuthController');
+  private logger = new Logger('AuthController', { timestamp: true });
 
   constructor(private authService: AuthService) {}
 
   @Post('/signUp')
   signUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
+    this.logger.verbose(`Sign Up user: ${JSON.stringify(authCredentialsDto)}`);
     return this.authService.signUp(authCredentialsDto);
   }
 
   @Post('/signin')
   signIn(@Body() authCredentialsDto: AuthCredentialsDto): Promise<JwtPayload> {
+    this.logger.verbose(`Sign In user: ${JSON.stringify(authCredentialsDto)}`);
     return this.authService.signIn(authCredentialsDto);
   }
 
   @Get('/list')
   @UseGuards(AuthGuard())
-  userList(
-    @Query() filterDto: GetUsersFilterDto
-  ): Promise<User[]> {
+  userList(@Query() filterDto: GetUsersFilterDto): Promise<User[]> {
     this.logger.verbose(
-      `Retrieving all users. Filters: ${JSON.stringify(
-        filterDto,
-      )}`,
+      `Retrieving all users. Filters: ${JSON.stringify(filterDto)}`,
     );
 
     return this.authService.findAll(filterDto);

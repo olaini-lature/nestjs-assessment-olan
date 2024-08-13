@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CommonInterceptor } from './shared/interceptors/common.interceptor';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { CommonInterceptor } from './shared/interceptors/common.interceptor';
         }
       }
     }),
-    AuthModule
+    AuthModule,
+    CategoryModule
   ],
   providers: [
     {

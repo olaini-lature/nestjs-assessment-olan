@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { CommonInterceptor } from './shared/interceptors/common.interceptor';
 
 @Module({
   imports: [
@@ -30,7 +33,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           database: configService.get('DB_DATABASE'),
         }
       }
-    })
+    }),
+    AuthModule
   ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CommonInterceptor,
+    },
+  ]
 })
 export class AppModule {}

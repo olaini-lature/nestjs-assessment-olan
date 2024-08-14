@@ -12,5 +12,6 @@ import { PassportModule } from '@nestjs/passport';
   ],
   providers: [CategoryService],
   controllers: [CategoryController],
+  exports: [CategoryService]
 })
 export class CategoryModule {}

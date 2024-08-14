@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { Cart } from './cart.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +12,7 @@ import { Product } from 'src/product/product.entity';
 import { ProductService } from 'src/product/product.service';
 import { User } from 'src/auth/user.entity';
 import { AuthService } from 'src/auth/auth.service';
+import { GetCartFilterDto } from './dto/get-cart-filter.dto';
 
 @Injectable()
 export class CartService {
@@ -16,29 +22,77 @@ export class CartService {
     @InjectRepository(Cart)
     private readonly cartRepository: Repository<Cart>,
     private productService: ProductService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
-  // async createCart(createCartDto: CreateCartDto): Promise<Cart> {
-  //   const { amount, productId, userId } = createCartDto;
+  async createCart(createCartDto: CreateCartDto, user: User): Promise<void> {
+    const { amount, productId } = createCartDto;
 
-  //   const product: Product = await this.productService.findById({id: productId});
-  //   const user: User = await this.authService.findById({ id: userId });
+    const product: Product = await this.productService.findById({
+      id: productId,
+    });
 
-  //   if (!product) {
-  //     this.logger.error(
-  //       `No product found with id: ${productId}`
-  //     );
-  //     throw new BadRequestException(`No product found with id: ${productId}`);
-  //   }
+    if (!product) {
+      this.logger.error(`No product found with id: ${productId}`);
+      throw new BadRequestException(`No product found with id: ${productId}`);
+    }
 
-  //   if (!user) {
-  //     this.logger.error(
-  //       `No user found with id: ${userId}`
-  //     );
-  //     throw new BadRequestException(`No user found with id: ${userId}`);
-  //   }
-  // }
+    const existingCart = await this.findCart({ productId }, user);
 
+    if (existingCart) {
+      this.logger.error(
+        `Failed to save cart. Cart with productId ${productId} exist`,
+      );
+      throw new BadRequestException(`Cart with productId ${productId} exist`);
+    }
 
+    const cartData = {
+      amount,
+      product,
+      user,
+    };
+
+    const cart = this.cartRepository.create(cartData);
+
+    try {
+      await this.cartRepository.save(cart);
+      this.logger.verbose(
+        `Successful create cart: ${JSON.stringify(cartData)}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to save cart: ${JSON.stringify(createCartDto)}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(`Failed to save data`);
+    }
+  }
+
+  async findCart(filterCartDto: GetCartFilterDto, user: User): Promise<Cart> {
+    const { id, productId } = filterCartDto;
+
+    const query = this.cartRepository.createQueryBuilder('cart');
+
+    query.andWhere('cart.userId = :userId', { userId: user.id });
+
+    if (id) {
+      query.andWhere('cart.id = :id', { id });
+    }
+
+    if (productId) {
+      query.andWhere('cart.productId = :productId', { productId });
+    }
+
+    try {
+      const cart = await query.getOne();
+      this.logger.verbose(`Successful get data cart: ${JSON.stringify(cart)}`);
+      return cart;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get cart. Filters: ${JSON.stringify(filterCartDto)}`,
+        error.stack,
+      );
+      return null;
+    }
+  }
 }

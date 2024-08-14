@@ -15,6 +15,7 @@ import { User } from 'src/auth/user.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { GetCartFilterDto } from './dto/get-cart-filter.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
+import { GetCartsFilterDto } from './dto/get-carts-filter.dto';
 
 @Injectable()
 export class CartService {
@@ -92,6 +93,30 @@ export class CartService {
     } catch (error) {
       this.logger.error(
         `Failed to get cart. Filters: ${JSON.stringify(filterCartDto)}`,
+        error.stack,
+      );
+      return null;
+    }
+  }
+  
+  async findAll(filterCartsDto: GetCartsFilterDto, user: User): Promise<Cart[]> {
+    const { search } = filterCartsDto;
+
+    const query = this.cartRepository.createQueryBuilder('cart');
+    query.innerJoinAndSelect('cart.product', 'product');
+    query.where({ user });
+
+    if (search) {
+      query.andWhere('(LOWER(product.name) LIKE LOWER(:search))', { search: `%${search}%`})
+    }
+
+    try {
+      const carts = query.getMany();
+      this.logger.verbose(`Successful get data carts: ${JSON.stringify(carts)}`);
+      return carts;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get cart. Filters: ${JSON.stringify(filterCartsDto)}`,
         error.stack,
       );
       return null;

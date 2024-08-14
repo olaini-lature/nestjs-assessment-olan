@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   Logger,
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -16,6 +18,7 @@ import { Cart } from './cart.entity';
 import { GetUser } from 'src/shared/decorators/get-user.decorator';
 import { User } from 'src/auth/user.entity';
 import { UpdateCartDto } from './dto/update-cart.dto';
+import { GetCartsFilterDto } from './dto/get-carts-filter.dto';
 
 @Controller('cart')
 @UseGuards(AuthGuard())
@@ -32,6 +35,19 @@ export class CartController {
   ): Promise<void> {
     this.logger.verbose(`Create cart: ${JSON.stringify(createCartDto)}`);
     return this.cartService.createCart(createCartDto, user);
+  }
+
+  @Get()
+  getCarts(
+    @Query() filterCartsDto: GetCartsFilterDto,
+    @GetUser() user: User,
+  ): Promise<Cart[]> {
+    this.logger.verbose(
+      `User "${user.username}" retrieving all carts. Filters: ${JSON.stringify(
+        filterCartsDto,
+      )}`,
+    );
+    return this.cartService.findAll(filterCartsDto, user);
   }
 
   @Patch('/:id')

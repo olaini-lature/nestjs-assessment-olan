@@ -5,6 +5,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -24,12 +25,14 @@ export class Product {
   price: number;
 
   @ManyToOne((_type) => Category, (category) => category.products, {
-    eager: false, cascade: true
+    eager: false,
+    cascade: true,
   })
+  @JoinColumn({ name: 'categoryId' })
   @Exclude({ toPlainOnly: true })
   category: Category;
 
-  @OneToMany((_type) => Cart, (cart) => cart.product, { eager: true })
+  @OneToMany((_type) => Cart, (cart) => cart.product, { eager: false })
   carts: Cart[];
 
   @CreateDateColumn()

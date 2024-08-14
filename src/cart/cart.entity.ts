@@ -5,6 +5,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -19,10 +20,16 @@ export class Cart {
   amount: number;
 
   @ManyToOne((_type) => Product, (product) => product.carts, { eager: false, cascade: true })
+  @JoinColumn({
+    name: 'productId'
+  })
   product: Product;
 
   @ManyToOne((_type) => User, (user) => user.carts, { eager: false, cascade: true })
-  @Exclude({ toPlainOnly: true })
+  @JoinColumn({
+    name: 'userId'
+  })
+  @Exclude()
   user: User;
 
   @CreateDateColumn()

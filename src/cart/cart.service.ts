@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { Cart } from './cart.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +14,7 @@ import { ProductService } from 'src/product/product.service';
 import { User } from 'src/auth/user.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { GetCartFilterDto } from './dto/get-cart-filter.dto';
+import { UpdateCartDto } from './dto/update-cart.dto';
 
 @Injectable()
 export class CartService {
@@ -93,6 +95,39 @@ export class CartService {
         error.stack,
       );
       return null;
+    }
+  }
+
+  async updateCartAmount(
+    id: string,
+    updateCartDto: UpdateCartDto,
+    user: User,
+  ): Promise<Cart> {
+    const { amount, productId } = updateCartDto;
+
+    const cart: Cart = await this.findCart({ id, productId }, user);
+
+    if (!cart) {
+      this.logger.error(`Cart with id ${id} doesn't exist`);
+      throw new NotFoundException(`Cart with id ${id} doesn't exist`);
+    }
+
+    cart.amount = amount;
+
+    try {
+      await this.cartRepository.save(cart);
+      this.logger.verbose(`Successful update cart: ${JSON.stringify(cart)}`);
+      return cart;
+    } catch (error) {
+      this.logger.error(
+        `Failed to update cart. Data: ${JSON.stringify({
+          id,
+          productId,
+          user,
+        })}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
     }
   }
 }

@@ -4,6 +4,7 @@ import { Product } from './product.entity';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CategoryService } from 'src/category/category.service';
+import { GetProductFilterDto } from './dto/get-product-filter.dto';
 
 @Injectable()
 export class ProductService {
@@ -52,6 +53,33 @@ export class ProductService {
         `No category found with id: ${categoryId}`
       );
       throw new BadRequestException(`No category found with id: ${categoryId}`);
+    }
+  }
+
+  async findById(filterProductDto: GetProductFilterDto): Promise<Product> {
+    const { id } = filterProductDto;
+
+    const query = this.productRepository.createQueryBuilder('product');
+
+    if (id) {
+      query.andWhere('product.id = :id', { id });
+    } else {
+      this.logger.error(
+        `Failed to get product. Filters: ${JSON.stringify(filterProductDto)}`
+      );
+      return null;
+    }
+
+    try {
+      const product = await query.getOne();
+      this.logger.verbose(`Successful get data product: ${JSON.stringify(product)}`);
+      return product;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get product. Filters: ${JSON.stringify(filterProductDto)}`,
+        error.stack,
+      );
+      return null;
     }
   }
 }

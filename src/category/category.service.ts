@@ -49,16 +49,23 @@ export class CategoryService {
 
   async findById(filterCategoryDto: GetCategoryFilterDto): Promise<Category> {
     const { id } = filterCategoryDto;
-  
+
     const query = this.categoryRepository.createQueryBuilder('category');
 
     if (id) {
       query.andWhere('category.id = :id', { id });
+    } else {
+      this.logger.error(
+        `Failed to get category. Filters: ${JSON.stringify(filterCategoryDto)}`,
+      );
+      return null;
     }
 
     try {
       const category = await query.getOne();
-      this.logger.verbose(`Successful get data category: ${JSON.stringify(category)}`);
+      this.logger.verbose(
+        `Successful get data category: ${JSON.stringify(category)}`,
+      );
       return category;
     } catch (error) {
       this.logger.error(
@@ -71,7 +78,7 @@ export class CategoryService {
 
   async findAll(filterCategoryDto: GetCategoryFilterDto): Promise<Category[]> {
     const { id, search } = filterCategoryDto;
-  
+
     const query = this.categoryRepository.createQueryBuilder('category');
 
     if (id) {
@@ -86,7 +93,9 @@ export class CategoryService {
 
     try {
       const categories = await query.getMany();
-      this.logger.verbose(`Successful get data category: ${JSON.stringify(categories)}`);
+      this.logger.verbose(
+        `Successful get data category: ${JSON.stringify(categories)}`,
+      );
       return categories;
     } catch (error) {
       this.logger.error(

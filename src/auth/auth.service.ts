@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from 'src/shared/interfaces/jwt-payload.interface';
 import { GetUsersFilterDto } from './dto/get-users-filter.dto';
+import { GetUserFilterDto } from './dto/get-user-filter.dto';
 
 @Injectable()
 export class AuthService {
@@ -85,6 +86,33 @@ export class AuthService {
         `Failed credential for user: ${JSON.stringify(authCredentialsDto)}`,
       );
       throw new UnauthorizedException('Please check your login credentials');
+    }
+  }
+
+  async findById(filterUserDto: GetUserFilterDto): Promise<User> {
+    const { id } = filterUserDto;
+
+    const query = this.userRepository.createQueryBuilder('user');
+
+    if (id) {
+      query.andWhere('user.id = :id', { id });
+    } else {
+      this.logger.error(
+        `Failed to get user. Filters: ${JSON.stringify(filterUserDto)}`
+      );
+      return null;
+    }
+
+    try {
+      const user = await query.getOne();
+      this.logger.verbose(`Successful get data user: ${JSON.stringify(user)}`);
+      return user;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get user. Filters: ${JSON.stringify(filterUserDto)}`,
+        error.stack,
+      );
+      return null;
     }
   }
 

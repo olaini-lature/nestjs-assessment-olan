@@ -1,10 +1,13 @@
 import { Exclude } from 'class-transformer';
+import { Cart } from 'src/cart/cart.entity';
 import { Category } from 'src/category/category.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -21,10 +24,13 @@ export class Product {
   price: number;
 
   @ManyToOne((_type) => Category, (category) => category.products, {
-    eager: false,
+    eager: false, cascade: true
   })
   @Exclude({ toPlainOnly: true })
   category: Category;
+
+  @OneToMany((_type) => Cart, (cart) => cart.product, { eager: true })
+  carts: Cart[];
 
   @CreateDateColumn()
   created_at: string;

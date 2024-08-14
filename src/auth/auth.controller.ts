@@ -1,20 +1,20 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   Logger,
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { JwtPayload } from 'src/shared/interfaces/jwt-payload.interface';
 import { GetUsersFilterDto } from './dto/get-users-filter.dto';
-import { GetUser } from 'src/shared/decorators/get-user.decorator';
 import { User } from './user.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminOnlyAccessInterceptor } from 'src/shared/interceptors/admin-only-access.interceptor';
 
 @Controller('auth')
 export class AuthController {
@@ -36,21 +36,8 @@ export class AuthController {
 
   @Get('/list')
   @UseGuards(AuthGuard())
-  userList(
-    @Query() filterDto: GetUsersFilterDto,
-    @GetUser() user: User,
-  ): Promise<User[]> {
-    this.logger.verbose(`Checking user access: ${JSON.stringify(user)}`);
-
-    if (user.type !== 'admin') {
-      this.logger.error(
-        `User don't have enough permission to access this service`,
-      );
-      throw new ForbiddenException(
-        `User don't have enough permission to access this service`,
-      );
-    }
-
+  @UseInterceptors(AdminOnlyAccessInterceptor)
+  userList(@Query() filterDto: GetUsersFilterDto): Promise<User[]> {
     this.logger.verbose(
       `Retrieving all users. Filters: ${JSON.stringify(filterDto)}`,
     );

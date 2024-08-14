@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Logger,
   Post,
@@ -35,7 +36,21 @@ export class AuthController {
 
   @Get('/list')
   @UseGuards(AuthGuard())
-  userList(@Query() filterDto: GetUsersFilterDto): Promise<User[]> {
+  userList(
+    @Query() filterDto: GetUsersFilterDto,
+    @GetUser() user: User,
+  ): Promise<User[]> {
+    this.logger.verbose(`Checking user access: ${JSON.stringify(user)}`);
+
+    if (user.type !== 'admin') {
+      this.logger.error(
+        `User don't have enough permission to access this service`,
+      );
+      throw new ForbiddenException(
+        `User don't have enough permission to access this service`,
+      );
+    }
+
     this.logger.verbose(
       `Retrieving all users. Filters: ${JSON.stringify(filterDto)}`,
     );

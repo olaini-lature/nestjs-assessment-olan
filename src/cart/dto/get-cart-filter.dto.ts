@@ -5,6 +5,7 @@ export class GetCartFilterDto {
   @IsString()
   id?: string;
 
+  @IsOptional()
   @IsString()
-  productId: string;
+  productId?: string;
 }

@@ -17,7 +17,7 @@ import { CreateCartDto } from './dto/create-cart.dto';
 import { Cart } from './cart.entity';
 import { GetUser } from 'src/shared/decorators/get-user.decorator';
 import { User } from 'src/auth/user.entity';
-import { UpdateCartDto } from './dto/update-cart.dto';
+import { UpdateCartAmountDto } from './dto/update-cart-amount.dto';
 import { GetCartsFilterDto } from './dto/get-carts-filter.dto';
 
 @Controller('cart')
@@ -53,12 +53,12 @@ export class CartController {
   @Patch('/:id')
   updateCart(
     @Param('id') id: string,
-    @Body() updateCartDto: UpdateCartDto,
+    @Body() updateCartAmountDto: UpdateCartAmountDto,
     @GetUser() user: User,
   ): Promise<Cart> {
     this.logger.verbose(
-      `Update cart with id ${id}: ${JSON.stringify(updateCartDto)}`,
+      `Update cart with id ${id}: ${JSON.stringify(updateCartAmountDto)}`,
     );
-    return this.cartService.updateCartAmount(id, updateCartDto, user);
+    return this.cartService.updateCartAmount(id, updateCartAmountDto, user);
   }
 }

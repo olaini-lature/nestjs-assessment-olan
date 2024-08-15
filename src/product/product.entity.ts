@@ -5,8 +5,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -28,7 +26,6 @@ export class Product {
     eager: false,
     cascade: true,
   })
-  @JoinColumn({ name: 'categoryId' })
   @Exclude({ toPlainOnly: true })
   category: Category;
 

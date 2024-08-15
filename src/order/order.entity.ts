@@ -25,7 +25,7 @@ export class Order {
   })
   status: OrderStatus;
 
-  @OneToMany((_type) => Cart, (cart) => cart.product, { eager: false })
+  @OneToMany((_type) => Cart, (cart) => cart.order, { eager: false })
   carts: Cart[];
 
   @CreateDateColumn()

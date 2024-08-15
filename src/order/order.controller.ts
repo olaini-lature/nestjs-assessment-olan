@@ -4,6 +4,7 @@ import {
   Get,
   Logger,
   Post,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { GetUser } from 'src/shared/decorators/get-user.decorator';
 import { User } from 'src/auth/user.entity';
 import { CustomerOnlyAccessInterceptor } from 'src/shared/interceptors/customer-only-access.interceptor';
 import { AdminOnlyAccessInterceptor } from 'src/shared/interceptors/admin-only-access.interceptor';
+import { GetOrdersFilterDto } from './dto/get-orders-filter.dto';
 
 @Controller('order')
 @UseGuards(AuthGuard())
@@ -37,11 +39,17 @@ export class OrderController {
     return this.orderService.createOrder(createOrderDto, user);
   }
 
-  // @Get()
-  // @UseInterceptors(AdminOnlyAccessInterceptor)
-  // getOrders(
-    
-  // ): Promise<Order[]> {
-
-  // }
+  @Get()
+  @UseInterceptors(AdminOnlyAccessInterceptor)
+  getOrders(
+    @Query() filterOrdersDto: GetOrdersFilterDto,
+    @GetUser() user: User,
+  ): Promise<Order[]> {
+    this.logger.verbose(
+      `User ${user.username} retrieving all orders. Data: ${JSON.stringify(
+        filterOrdersDto,
+      )}`,
+    );
+    return this.orderService.findAll(filterOrdersDto);
+  }
 }

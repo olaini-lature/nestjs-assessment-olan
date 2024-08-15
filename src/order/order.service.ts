@@ -14,6 +14,7 @@ import { Cart } from 'src/cart/cart.entity';
 import { CartService } from 'src/cart/cart.service';
 import { User } from 'src/auth/user.entity';
 import { GetOrderFilterDto } from './dto/get-order-filter.dto';
+import { GetOrdersFilterDto } from './dto/get-orders-filter.dto';
 
 @Injectable()
 export class OrderService {
@@ -90,7 +91,37 @@ export class OrderService {
     }
   }
 
-  async findOrder(filterOrderDto: GetOrderFilterDto) {
+  async findAll(filterOrdersDto: GetOrdersFilterDto): Promise<Order[]> {
+    const { search, status } = filterOrdersDto;
+
+    const query = this.orderRepository.createQueryBuilder('order');
+    query.innerJoinAndSelect('order.carts', 'cart');
+    query.innerJoinAndSelect('cart.product', 'product');
+
+    if (status) {
+      query.andWhere('order.status = :status', { status });
+    }
+
+    if (search) {
+      query.andWhere('(LOWER(product.name) LIKE LOWER(:search))', {
+        search: `%${search}%`,
+      });
+    }
+
+    try {
+      const order = await query.getMany();
+      this.logger.log(`Query generated: ${query.getSql()}`);
+      this.logger.verbose(
+        `Successful get all orders: ${JSON.stringify(order)}`,
+      );
+      return order;
+    } catch (error) {
+      this.logger.error(`Failed to get all orders`, error.stack);
+      return null;
+    }
+  }
+
+  async findOrder(filterOrderDto: GetOrderFilterDto): Promise<Order> {
     const { id } = filterOrderDto;
 
     const query = this.orderRepository.createQueryBuilder('order');

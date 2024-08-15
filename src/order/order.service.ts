@@ -110,7 +110,6 @@ export class OrderService {
 
     try {
       const order = await query.getMany();
-      this.logger.log(`Query generated: ${query.getSql()}`);
       this.logger.verbose(
         `Successful get all orders: ${JSON.stringify(order)}`,
       );
